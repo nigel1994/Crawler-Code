@@ -1,0 +1,124 @@
+##########################################
+#find out the passenger carrying capacity#
+##########################################
+#find out all coachtype
+mpath="E://data/test"  
+mfiles=list.files(mpath, pattern = "*.csv$", full.names = TRUE)  
+i=1
+ct=c()
+for (i in 1:length(mfiles)){
+	data_date=read.csv(mfiles[i],header=T,stringsAsFactors = FALSE)
+	data_date=data_date[-1,]
+	ct=c(ct,unique(data_date$coachType))
+	ct=unique(ct)
+}
+t=1
+people_cap=vector(mode="numeric",length=length(ct))
+for(t in 1:length(ct))
+{
+  people_cap[t]=0
+}
+cappath="E://data/base/calculate"  
+capfiles=list.files(cappath, pattern = "*.csv$", full.names = TRUE)  
+t=1
+i=1
+for (i in 1:length(capfiles)){
+	data_cap=read.csv(capfiles[i],header=T,stringsAsFactors = FALSE)
+	tl=data_cap$ticketLeft
+	w=1
+	for (w in 1:length(ct)){
+		findcap=which(data_cap$coachType==ct[w])
+		if (length(findcap)!=0){
+		for (h in 1:length(findcap)){
+			if (tl[findcap[h]]>people_cap[w]){
+			people_cap[w]=tl[findcap[h]]
+			}
+		}
+		}
+		
+	}
+}
+ct_people_cap=cbind(ct,people_cap)
+write.csv(ct_people_cap,"e://data//result//ct_people_cap.csv",row.names = FALSE);
+
+###############################
+#population between two cities#
+###############################
+data_capacity=read.csv("E://data/result//ct_people_cap.csv",header=T,stringsAsFactors = FALSE)
+capacity=function(x){
+	cap=data_capacity$people_cap[which(data_capacity$ct==x)]
+	return(cap)
+}
+i=1
+t=1
+frequence=vector(mode="numeric",length=600)
+people=vector(mode="numeric",length=600)
+for(t in 1:600){
+  	frequence[t]=0
+	people[t]=0
+}
+mpath="E://data/data"  
+mfiles=list.files(mpath, pattern = "*.csv$", full.names = TRUE)  
+t=1
+data_base=read.csv("E://data/base/base.csv",stringsAsFactors = FALSE)
+i=1
+
+for (i in 1:length(mfiles)){
+data_date=read.csv(mfiles[i],header=T,stringsAsFactors = FALSE)
+data_date=data_date[-1,]
+t=1
+	for (t in 1:600){
+		find=which(data_date$departure==data_base$startresult[t])
+		if (length(find)!=0){
+			find2=which(data_date$destination[find[1]:find[length(find)]]==data_base$endresult[t])
+			frequence[t]=frequence[t]+length(find2)
+			if (length(find2)!=0){
+			for (i in (1:length(find2))){
+				people[t]=people[t]+(capacity(data_date$coachType[find2[i]])-data_date$ticketLeft[find2[i]])
+			}
+			}
+		}
+	}
+}
+
+finalresult=cbind(data_base$startresult,data_base$endresult,frequence,people)
+write.csv(finalresult,"e://data//result//result.csv",row.names = FALSE);
+
+
+#########################
+#population accumulation#
+#########################
+city=c("上海","南京","无锡","徐州","常州","苏州","南通","连云港","淮安","盐城","扬州","镇江","泰州","宿迁","杭州","宁波","温州","绍兴","湖州","嘉兴","金华","衢州","台州","丽水","舟山");
+infre=vector(mode="numeric",length=25)
+outfre=vector(mode="numeric",length=25)
+inpeo=vector(mode="numeric",length=25)
+outpeo=vector(mode="numeric",length=25)
+for(t in 1:25){
+ 	infre[t]=0
+	outfre[t]=0
+	inpeo[t]=0
+	outpeo[t]=0
+}
+ii=1
+data_inout=read.csv("E://data/result//result.csv",stringsAsFactors = FALSE)
+for (ii in 1:length(city)){
+	find3=which(data_inout$startcity==city[ii])
+	find4=which(data_inout$endcity==city[ii])
+		iii=1
+		if (length(find4)!=0){
+			for (iii in 1:length(find4)){
+				infre[ii]=infre[ii]+data_inout$frequence[find4[iii]]
+				inpeo[ii]=inpeo[ii]+data_inout$people[find4[iii]]
+			}
+		}
+		iii=1
+		if (length(find3)!=0){
+			for (iii in 1:length(find3)){
+				outfre[ii]=outfre[ii]+data_inout$frequence[find3[iii]]
+				outpeo[ii]=outpeo[ii]+data_inout$people[find3[iii]]
+			}
+		}
+
+}
+inoutresult=cbind(city,infre,outfre,inpeo,outpeo)
+write.csv(inoutresult,"e://data//result//inoutresult.csv",row.names = FALSE);
