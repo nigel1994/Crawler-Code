@@ -3,4 +3,4 @@ This is a Craeler code developed to get the passenger flow data from a Chinese B
 
 To use this code, The origin and destination city and the date should be changed according to your need
 
-The detailed cleaning and processing code to deal with the original downloading data is also given with a sample data for you to implement it
+The detailed cleaning and processing code to deal with the original data is also given with a sample data for you to implement it
